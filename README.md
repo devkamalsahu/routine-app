@@ -1,6 +1,6 @@
 # routine_app
 
-A new Flutter project.
+A fluter app built.
 
 ## Getting Started
 
