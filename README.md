@@ -1,10 +1,10 @@
 # routine_app
 
-A fluter app built.
+A flutter app built for tracking and managing routine.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+ This app is built on Isar database.
 
 A few resources to get you started if this is your first Flutter project:
 
