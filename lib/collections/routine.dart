@@ -10,7 +10,7 @@ class Routine {
 
   // default index -> data is sorted so it will be faster to fetch
   @Index()
-  late DateTime startTime;
+  late String startTime;
 
   // by default casSensitive is true
   @Index(caseSensitive: false)

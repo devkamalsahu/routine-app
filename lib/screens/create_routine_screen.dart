@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '/collections/category.dart';
+import '/services/routine_provider.dart';
 
 class CreateRoutineScreen extends StatefulWidget {
   const CreateRoutineScreen({super.key});
@@ -14,12 +17,17 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   final timeController = TextEditingController();
   final newCatController = TextEditingController();
 
-  // categories
-  final categories = [
-    DropdownMenuItem(value: 'school', child: Text('school')),
-    DropdownMenuItem(value: 'home', child: Text('home')),
-    DropdownMenuItem(value: 'market', child: Text('market')),
-  ];
+  // providers
+  late final db = Provider.of<RoutineProvider>(context, listen: false);
+  late final dbProvider = Provider.of<RoutineProvider>(context);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      db.readCategories();
+    });
+  }
 
   // week days
   final days = [
@@ -44,9 +52,22 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
           (context) => AlertDialog(
             title: Text('Add Category'),
             content: TextFormField(
+              controller: newCatController,
               decoration: InputDecoration(hintText: 'category name'),
             ),
-            actions: [ElevatedButton(onPressed: () {}, child: Text('Add'))],
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  if (newCatController.text.isNotEmpty) {
+                    final newCategory =
+                        Category()..name = newCatController.text;
+                    db.addCategory(newCategory);
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Text('Add'),
+              ),
+            ],
           ),
     );
   }
@@ -71,6 +92,39 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     }
   }
 
+  void addRoutine() async {
+    if (titleController.text.isNotEmpty &&
+        selectedCategoy != null &&
+        timeController.text.isNotEmpty &&
+        selectedDay != null) {
+      final db = Provider.of<RoutineProvider>(context, listen: false);
+
+      await db.addRoutine(
+        titleController.text,
+        timeController.text,
+        selectedDay!,
+        selectedCategoy!, // Pass category name
+      );
+
+      titleController.clear();
+      timeController.clear();
+
+      setState(() {
+        selectedCategoy = null;
+        selectedDay = null;
+      });
+
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    titleController.dispose();
+    timeController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,7 +145,15 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                         icon: Icon(Icons.keyboard_arrow_down),
                         hint: Text('Category'),
                         borderRadius: BorderRadius.circular(16),
-                        items: categories,
+                        items:
+                            dbProvider.categories
+                                .map(
+                                  (cat) => DropdownMenuItem(
+                                    value: cat.name,
+                                    child: Text(cat.name),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (value) {
                           setState(() {
                             selectedCategoy = value;
@@ -111,6 +173,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
 
               // title
               TextFormField(
+                controller: titleController,
                 decoration: InputDecoration(
                   hintText: 'Title',
                   border: OutlineInputBorder(
@@ -148,6 +211,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: DropdownButton(
+                  hint: Text('Day'),
                   items: days,
                   onChanged: (value) {
                     setState(() {
@@ -155,7 +219,6 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                     });
                   },
                   value: selectedDay,
-
                   isExpanded: true,
                   borderRadius: BorderRadius.circular(16),
                   icon: Icon(Icons.keyboard_arrow_down),
@@ -164,7 +227,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
               SizedBox(height: 20),
 
               // add button
-              ElevatedButton(onPressed: () {}, child: Text('Add')),
+              ElevatedButton(onPressed: addRoutine, child: Text('Add')),
             ],
           ),
         ),

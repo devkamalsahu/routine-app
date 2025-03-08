@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:routine_app/collections/category.dart';
-import 'package:routine_app/collections/routine.dart';
+import 'package:provider/provider.dart';
+import 'package:routine_app/services/routine_provider.dart';
 import 'package:routine_app/theme/elevated_button.dart';
 import 'package:routine_app/theme/input_decoration_theme.dart';
 
@@ -11,14 +9,14 @@ import 'screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final dir = await getApplicationSupportDirectory();
+  await RoutineProvider.initialize();
 
-  final isar = await Isar.open([
-    RoutineSchema,
-    CategorySchema,
-  ], directory: dir.path);
-
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => RoutineProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
