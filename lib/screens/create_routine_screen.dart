@@ -62,6 +62,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                     final newCategory =
                         Category()..name = newCatController.text;
                     db.addCategory(newCategory);
+                    newCatController.clear();
                     Navigator.of(context).pop();
                   }
                 },
